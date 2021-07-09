@@ -2,12 +2,16 @@ package fr.flowsqy.dynamiccommand;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Locale;
 
 public class DynamicCommand {
 
@@ -24,6 +28,21 @@ public class DynamicCommand {
             }
             return commands;
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void registerCommands(Plugin ownerPlugin, PluginCommand... commands) {
+        if (commands == null || commands.length < 1) {
+            return;
+        }
+        try {
+            final Server server = Bukkit.getServer();
+            final Field commandMapField = server.getClass().getDeclaredField("commandMap");
+            commandMapField.setAccessible(true);
+            final CommandMap commandMap = (CommandMap) commandMapField.get(server);
+            commandMap.registerAll(ownerPlugin.getName().toLowerCase(Locale.ROOT).trim(), Arrays.asList(commands));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
