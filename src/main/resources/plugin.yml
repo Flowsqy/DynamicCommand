@@ -1,0 +1,4 @@
+name: DynamicCommand
+author: Flowsqy
+version: "${project.version}"
+main: fr.flowsqy.dynamiccommand.DynamicCommandPlugin
