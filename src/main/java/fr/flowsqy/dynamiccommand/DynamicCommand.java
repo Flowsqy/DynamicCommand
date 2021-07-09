@@ -1,10 +1,13 @@
 package fr.flowsqy.dynamiccommand;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class DynamicCommand {
 
@@ -21,6 +24,17 @@ public class DynamicCommand {
             }
             return commands;
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void synchronizeTabCompleter() {
+        try {
+            final Server server = Bukkit.getServer();
+            final Method syncCommandsMethod = server.getClass().getDeclaredMethod("syncCommands");
+            syncCommandsMethod.setAccessible(true);
+            syncCommandsMethod.invoke(server);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
