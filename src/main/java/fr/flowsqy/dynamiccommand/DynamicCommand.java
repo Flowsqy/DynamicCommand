@@ -2,16 +2,17 @@ package fr.flowsqy.dynamiccommand;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.*;
 
 public class DynamicCommand {
 
@@ -32,16 +33,36 @@ public class DynamicCommand {
         }
     }
 
-    public static void registerCommands(Plugin ownerPlugin, PluginCommand... commands) {
+    private static CommandMap getCommandMap() throws NoSuchFieldException, IllegalAccessException {
+        final Server server = Bukkit.getServer();
+        final Field commandMapField = server.getClass().getDeclaredField("commandMap");
+        commandMapField.setAccessible(true);
+        return (CommandMap) commandMapField.get(server);
+    }
+
+    private static HashMap<String, Command> getKnownCommands(CommandMap commandMap) throws IllegalAccessException, NoSuchFieldException {
+        final Field knownCommandsField = SimpleCommandMap.class.getDeclaredField("knownCommands");
+        knownCommandsField.setAccessible(true);
+        //noinspection unchecked
+        return (HashMap<String, Command>) knownCommandsField.get(commandMap);
+    }
+
+    public static Set<String> registerCommands(Plugin ownerPlugin, PluginCommand... commands) {
         if (commands == null || commands.length < 1) {
-            return;
+            return Collections.emptySet();
         }
         try {
-            final Server server = Bukkit.getServer();
-            final Field commandMapField = server.getClass().getDeclaredField("commandMap");
-            commandMapField.setAccessible(true);
-            final CommandMap commandMap = (CommandMap) commandMapField.get(server);
+            final CommandMap commandMap = getCommandMap();
+            final HashMap<String, Command> knownCommands = getKnownCommands(commandMap);
+            final String[] originalRegisteredCommands = knownCommands.keySet().toArray(new String[0]);
             commandMap.registerAll(ownerPlugin.getName().toLowerCase(Locale.ROOT).trim(), Arrays.asList(commands));
+            final HashSet<String> afterRegistrationCommands = new HashSet<>(knownCommands.keySet());
+            for (String commandName : originalRegisteredCommands) {
+                if (commandName == null)
+                    continue;
+                afterRegistrationCommands.remove(commandName);
+            }
+            return afterRegistrationCommands;
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
