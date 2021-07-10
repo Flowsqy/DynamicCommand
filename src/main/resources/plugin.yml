@@ -2,3 +2,4 @@ name: DynamicCommand
 author: Flowsqy
 version: "${project.version}"
 main: fr.flowsqy.dynamiccommand.DynamicCommandPlugin
+api-version: "1.16"
