@@ -68,6 +68,20 @@ public class DynamicCommand {
         }
     }
 
+    public static void unregisterCommands(String... commandsNames) {
+        if (commandsNames == null || commandsNames.length < 1) {
+            return;
+        }
+        try {
+            final HashMap<String, Command> knownCommands = getKnownCommands(getCommandMap());
+            for (String commandName : commandsNames) {
+                knownCommands.remove(commandName);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void synchronizeTabCompleter() {
         try {
             final Server server = Bukkit.getServer();
