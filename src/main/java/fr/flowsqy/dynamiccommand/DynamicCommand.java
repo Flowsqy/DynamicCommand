@@ -40,10 +40,10 @@ public class DynamicCommand {
         return (CommandMap) commandMapField.get(server);
     }
 
+    @SuppressWarnings("unchecked")
     private static HashMap<String, Command> getKnownCommands(CommandMap commandMap) throws IllegalAccessException, NoSuchFieldException {
         final Field knownCommandsField = SimpleCommandMap.class.getDeclaredField("knownCommands");
         knownCommandsField.setAccessible(true);
-        //noinspection unchecked
         return (HashMap<String, Command>) knownCommandsField.get(commandMap);
     }
 
